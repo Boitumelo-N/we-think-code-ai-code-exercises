@@ -265,3 +265,361 @@ Using AI helped me validate my assumptions and quickly identify gaps in my under
 
 #### Task List Management (`tasklistmerge.js`)
 * Combines and organizes multiple task lists
+
+## Exercise Part 2: Finding Feature Implementation
+
+### Initial Search
+
+### Search for Existing Export or File-Related Functionality
+
+I reviewed the task manager codebase to determine whether any export or file-related functionality already exists, specifically focusing on features such as CSV export or external file generation.
+
+The main files reviewed were:
+- app.js
+- cli.js
+- models.js
+- storage.js
+
+The most relevant file is `storage.js`, which contains functions such as load and save, indicating that the system already performs file read and write operations for persistent storage of tasks.
+
+However, no existing functionality was found that exports tasks into CSV format or any external file format designed for user download or data sharing.
+
+### Data Transformation and External File Operations
+
+The system already performs data transformation when converting user input into structured task objects. This likely occurs across multiple components:
+
+- `cli.js` handles raw user input
+- `models.js` defines the structure of a task object
+- `storage.js` manages saving and retrieving structured data
+
+The `storage.js` module is the main component responsible for external file operations, as it handles saving and loading task data from files.
+
+This indicates that data is transformed from user input into structured objects before being stored externally.
+
+### Reusable Utility Functions for File Operations
+
+The `storage.js` file contains reusable functions that handle core file operations, including:
+- Loading tasks from storage
+- Saving tasks to storage
+- Retrieving task data for processing
+
+These functions can be reused for implementing a "Task Export to CSV" feature, as the export functionality would first require retrieving existing tasks before converting them into CSV format and writing them to a new file.
+
+Therefore, `storage.js` acts as the primary utility module for file-based operations in the system.
+
+### Hypothesis: Where the Export Feature Should Be Implemented
+
+Based on the structure of the codebase, the "Task Export to CSV" feature would likely be implemented using a combination of existing modules rather than a single file.
+
+The most appropriate implementation approach would be:
+
+- `cli.js`: Add a new command such as "export" to trigger the feature
+- `storage.js`: Retrieve all existing tasks using existing load/get functions
+- New or extended function in `storage.js`: Convert task data into CSV format and write it to a file
+- `models.js`: Ensure consistent task structure for accurate CSV formatting
+
+### Expected Flow:
+User Command → cli.js → storage.js (get tasks) → CSV conversion → file output
+
+This approach ensures the new feature integrates cleanly into the existing modular architecture.
+
+### Existing Components That Would Need Modification
+
+To implement the "Task Export to CSV" feature, the following components would need to be modified:
+
+- `cli.js`: A new command (e.g. export) would need to be added to trigger the export functionality from the terminal.
+- `storage.js`: This module would need to be extended to support exporting task data into CSV format in addition to existing save/load functionality.
+- `models.js`: May need to be referenced to ensure task fields are correctly mapped into CSV columns (e.g. id, title, status, priority).
+
+### Search Terms Used and Files Found
+
+Search terms used during analysis:
+- "storage"
+- "save"
+- "load"
+- "task"
+- "file"
+- "cli"
+- "model"
+- "export"
+- "csv"
+
+Files identified in the codebase:
+- `app.js` → application entry point
+- `cli.js` → command-line interface and user commands
+- `models.js` → task data structure definition
+- `storage.js` → handles file read/write operations (most relevant file)
+
+### Apply The Feature Location Prompt
+
+### AI Prompt
+I need to work on a "Task Export to CSV" feature in this codebase, but I am not sure where the implementation for this feature should live.
+
+My current understanding:
+- I searched for keywords such as save, load, task, file, cli, model, export, and csv
+- I reviewed cli.js, storage.js, and models.js
+- I believe storage.js is the most relevant file for file-related operations
+
+Project structure:
+- cli.js
+- models.js
+- storage.js
+
+Based on my search, storage.js seems to be the most relevant file, but I am unsure how the full feature should be implemented across the system.
+
+I need help understanding:
+1. Whether my search approach is correct and how it can be improved
+2. Which files are most likely involved in implementing this feature
+3. Better search terms or patterns to look for in the codebase
+4. How different parts of this feature are distributed across the system
+5. A step-by-step approach to locate and understand the full feature flow
+
+### AI Response
+I'll help you understand the codebase structure and guide you on implementing the "Task Export to CSV" feature. Let me first examine the files you've identified.Now I have a comprehensive view of your codebase. Let me provide you with structured guidance on implementing the "Task Export to CSV" feature:
+
+## 1. Your Search Approach: ✅ Correct Direction, But Incomplete
+
+Your search strategy was solid, but you missed one critical file: **app.js**. The complete architecture needs:
+- `models.js` - Data structures (Task, TaskPriority, TaskStatus)
+- `storage.js` - File I/O operations
+- `app.js` - Business logic layer (TaskManager)
+- `cli.js` - User interface
+
+You should also search for: **"app"**, **"manager"**, **"export"**, and **"format"**.
+
+## 2. Files Involved in the Export Feature
+
+Here's the complete flow:
+
+```
+cli.js (new command)
+    ↓
+app.js (new TaskManager method)
+    ↓
+storage.js (new export method)
+    ↓
+CSV file output
+```
+
+## 3. Step-by-Step Implementation Approach
+
+### **Step 1: Extend storage.js** (File I/O Layer)
+Add a new method to handle CSV formatting and file writing:
+
+```javascript
+exportToCSV(outputPath = 'tasks.csv') {
+  try {
+    const tasks = Object.values(this.tasks);
+    const headers = ['ID', 'Title', 'Description', 'Status', 'Priority', 'Tags', 'Due Date', 'Created At'];
+    const csvRows = tasks.map(task => [
+      task.id,
+      `"${task.title}"`,
+      `"${task.description}"`,
+      task.status,
+      task.priority,
+      `"${task.tags.join(', ')}"`,
+      task.dueDate ? task.dueDate.toISOString().split('T')[0] : '',
+      task.createdAt.toISOString()
+    ]);
+    
+    const csv = [headers, ...csvRows].map(row => row.join(',')).join('\n');
+    fs.writeFileSync(outputPath, csv);
+    return true;
+  } catch (error) {
+    console.error(`Error exporting to CSV: ${error.message}`);
+    return false;
+  }
+}
+```
+
+### **Step 2: Check app.js for TaskManager** (Business Logic Layer)
+You need to add a wrapper method in `TaskManager` that calls the storage method. Look for what `app.js` contains—it should have a `TaskManager` class that uses `TaskStorage`.
+
+### **Step 3: Add CLI command** (User Interface)
+Add a new command to `cli.js`:
+
+```javascript
+program
+  .command('export <output_file>')
+  .description('Export all tasks to CSV')
+  .action((outputFile) => {
+    if (taskManager.exportTasksToCSV(outputFile)) {
+      console.log(`Tasks exported to ${outputFile}`);
+    } else {
+      console.log('Failed to export tasks to CSV.');
+    }
+  });
+```
+
+## 4. Better Search Patterns for Future Use
+
+| Pattern | Purpose | Examples |
+|---------|---------|----------|
+| `symbol:` | Find class/function definitions | `symbol:export`, `symbol:TaskStorage` |
+| `content:` with file type | Find usage patterns | `content:writeFileSync language:javascript` |
+| Regex for methods | Find all methods in a class | `/export\|save\|write/` |
+| Cross-file trace | Follow data flow | Track method calls from CLI → app → storage |
+
+## 5. Architecture Summary
+
+```
+┌─────────────────────────────────────────────────────┐
+│ CLI (cli.js) - User Commands                        │
+│ - Parses input: node index.js export tasks.csv      │
+└────────────┬────────────────────────────────────────┘
+             │
+┌────────────▼────────────────────────────────────────┐
+│ Business Logic (app.js) - TaskManager               │
+│ - Orchestrates operations                           │
+│ - Calls storage methods                             │
+└────────────┬────────────────────────────────────────┘
+             │
+┌────────────▼────────────────────────────────────────┐
+│ Storage (storage.js) - TaskStorage                  │
+│ - Handles file I/O (JSON and CSV)                   │
+│ - Manages task data persistence                     │
+└────────────┬────────────────────────────────────────┘
+             │
+┌────────────▼────────────────────────────────────────┐
+│ Data Models (models.js)                             │
+│ - Task, TaskStatus, TaskPriority                    │
+└─────────────────────────────────────────────────────┘
+```
+
+## Next Steps
+
+1. **Retrieve `app.js`** to see the full TaskManager implementation
+2. **Add the `exportToCSV()` method to `TaskStorage`** in storage.js
+3. **Add a wrapper in `TaskManager`** (from app.js)
+4. **Add the CLI command** in cli.js
+5. **Test with**: `node index.js export my-tasks.csv`
+
+Would you like me to help you retrieve `app.js` and create the implementation files?
+
+### Search Approach and Findings So Far
+
+To investigate where a "Task Export to CSV" feature might be implemented, I explored the codebase using a keyword-based search approach combined with manual file inspection.
+
+#### Search Approach:
+- Searched for keywords such as: save, load, task, file, cli, model, export, csv
+- Focused on identifying file-related operations and data handling logic
+- Manually reviewed key files including:
+  - cli.js
+  - storage.js
+  - models.js
+
+#### Findings So Far:
+- The most relevant file identified is `storage.js`, which handles saving and loading task data.
+- `cli.js` appears responsible for handling user commands and would likely be where a new "export" command is added.
+- `models.js` defines the structure of task data, which would be important for formatting CSV output.
+- No existing CSV export functionality was found in the codebase.
+
+Based on this, I believe the export feature does not currently exist and would need to be implemented using existing storage and task retrieval logic.
+
+### AI Guidance on Locating Similar Features and Patterns
+
+The AI explained that features in this codebase follow a consistent layered architecture pattern:
+
+### 1. Core Architectural Pattern Identified
+The system follows a three-layer structure:
+- CLI Layer (`cli.js`) → handles user input and commands
+- Business Logic Layer (`app.js`) → processes logic and coordinates actions
+- Storage Layer (`storage.js`) → handles file reading and writing
+
+### 2. How Existing Features Follow This Pattern
+Existing commands such as listing and statistics follow this structure:
+- CLI defines the command
+- Business logic processes input and applies rules
+- Storage layer retrieves or saves data
+
+This pattern would also apply to a "Task Export to CSV" feature.
+
+### 3. Feature Location Strategy
+The AI suggested that when locating features, I should:
+- Start by searching in `cli.js` for command definitions
+- Trace function calls into `app.js` for business logic
+- Follow data operations into `storage.js`
+- Identify similar data transformation patterns (e.g. filter, map operations)
+
+### 4. Key Patterns to Look For in Codebase
+- `program.command()` → CLI commands
+- `.action()` → command execution logic
+- `fs.writeFileSync` / `fs.readFileSync` → file operations
+- `.map()` / `.filter()` → data transformation
+- Methods in `storage.js` → data persistence layer
+
+### 5. Main Insight
+The AI confirmed that new features like CSV export should follow the same layered flow:
+CLI → Business Logic → Storage → Output
+
+## 4. Document Your Findings
+
+### 4.1 Feature Implementation Location
+
+Based on my analysis of the codebase structure and AI guidance, the "Task Export to CSV" feature would be implemented across three main areas:
+
+- **cli.js (Presentation Layer)**
+  - A new command such as `export <filename>` would be added here.
+  - This would allow users to trigger the export feature from the terminal.
+
+- **app.js (Business Logic Layer)**
+  - A new method such as `exportTasksToCSV()` would be added to handle the coordination of the export process.
+  - This layer would retrieve task data and prepare it for formatting.
+
+- **storage.js (Data Layer)**
+  - A new function such as `exportToCSV()` would handle converting task data into CSV format and writing it to a file.
+  - This is where file system operations would occur.
+
+
+
+### 4.2 Related Components Affected
+
+The following components would be affected or involved in implementing this feature:
+
+- **models.js**
+  - Provides the structure of task objects.
+  - Ensures correct mapping of fields (id, title, status, priority, etc.) into CSV columns.
+
+- **storage.js**
+  - Handles data retrieval and file writing.
+  - Would need to support CSV formatting in addition to existing JSON operations.
+
+- **cli.js**
+  - Would need to include a new command definition for exporting data.
+
+- **app.js**
+  - Would act as the intermediary between CLI input and storage operations.
+
+
+### 4.3 Implementation Approach Plan
+
+If I were to implement this feature, I would follow these steps:
+
+1. **Investigate existing data retrieval methods**
+   - Identify how tasks are currently fetched (e.g. getAllTasks or similar methods).
+
+2. **Add CLI command**
+   - Define a new command in `cli.js` called `export <filename>`.
+   - Ensure it calls the appropriate method in the business logic layer.
+
+3. **Add business logic method**
+   - Create `exportTasksToCSV()` in `app.js`.
+   - This method would retrieve all tasks and pass them to the storage layer.
+
+4. **Implement CSV export in storage layer**
+   - Add `exportToCSV()` in `storage.js`.
+   - Convert task objects into CSV format.
+   - Use file system operations to write the output file.
+
+5. **Ensure data mapping is correct**
+   - Use `models.js` to understand task structure.
+   - Map fields properly into CSV columns.
+
+6. **Test the feature**
+   - Run the CLI command and verify the CSV file is correctly generated.
+   - Check for formatting issues or missing fields.
+
+
+### 4.4 Summary Insight
+
+This feature follows the existing layered architecture of the system (CLI → Business Logic → Storage). By identifying existing patterns in the codebase, the new feature can be integrated without breaking the current structure, ensuring consistency and maintainability.
