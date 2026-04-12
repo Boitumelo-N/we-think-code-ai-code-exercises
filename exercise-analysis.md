@@ -1042,3 +1042,73 @@ For example:
 - The system can quickly determine which tasks are more urgent
 
 This would be more difficult if priority was stored as text values.
+
+## Revised Entity Diagram
+
+Based on my improved understanding, the Task is the central entity and interacts with several key concepts.
+
+Task:
+- id
+- title
+- description
+- status
+- priority
+- dueDate
+- createdAt
+- updatedAt
+- completedAt
+- tags (array)
+
+Relationships:
+- A Task has one Status (e.g. todo, in_progress, review, done)
+- A Task has one Priority (e.g. low, medium, high, urgent)
+- A Task may have multiple Tags
+- A Task may have a Due Date
+
+Key Logic:
+- A task is overdue if the due date has passed and the task is not marked as done
+- completedAt is only set when a task is marked as done
+
+Simple Structure:
+
+Task
+ ├── Status (workflow stage)
+ ├── Priority (urgency level)
+ ├── Due Date (deadline)
+ ├── Tags (labels/categories)
+ └── Timestamps (createdAt, updatedAt, completedAt)
+
+ ## Glossary of Domain Terms
+
+- **Task**  
+  A unit of work that a user wants to manage and track.
+
+- **Status**  
+  Represents the stage of a task in the workflow (e.g. todo, in_progress, review, done).
+
+- **Priority**  
+  Indicates how important or urgent a task is (e.g. low, medium, high, urgent).
+
+- **Due Date**  
+  The deadline by which a task should be completed.
+
+- **Overdue**  
+  A task that has passed its due date and is not yet completed.
+
+- **Tags**  
+  Labels used to categorize or organize tasks.
+
+- **createdAt**  
+  The timestamp when a task was created.
+
+- **updatedAt**  
+  The timestamp when a task was last modified.
+
+- **completedAt**  
+  The timestamp when a task was marked as done.
+
+- **Workflow**  
+  The progression of a task through different statuses.
+
+- **Filtering**  
+  The process of retrieving tasks based on conditions such as status, priority, or overdue state.
