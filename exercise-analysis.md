@@ -307,16 +307,62 @@ These functions can be reused for implementing a "Task Export to CSV" feature, a
 
 Therefore, `storage.js` acts as the primary utility module for file-based operations in the system.
 
-### Hypothesis: Where the Export Feature Should Be Implemented
+## 2. Form a Hypothesis
 
-Based on the structure of the codebase, the "Task Export to CSV" feature would likely be implemented using a combination of existing modules rather than a single file.
+### Where the Export Feature Might Belong
 
-The most appropriate implementation approach would be:
+Based on my initial search, I believe the "Task Export to CSV" functionality would be implemented across multiple layers of the application.
 
-- `cli.js`: Add a new command such as "export" to trigger the feature
-- `storage.js`: Retrieve all existing tasks using existing load/get functions
-- New or extended function in `storage.js`: Convert task data into CSV format and write it to a file
-- `models.js`: Ensure consistent task structure for accurate CSV formatting
+- `storage.js` would handle the actual file writing and CSV formatting, since it already manages saving and loading data.
+- `app.js` would act as the business logic layer, coordinating the export process by retrieving task data and passing it to the storage layer.
+- `cli.js` would allow the user to trigger the export feature through a command.
+
+This suggests that the feature would follow the existing pattern used by other functionalities in the system.
+
+---
+
+### Components That Might Need Modification
+
+The following components would likely need to be modified:
+
+- `storage.js`
+  - To add functionality for converting task data into CSV format and writing it to a file
+
+- `app.js`
+  - To add a new method (e.g. exportTasksToCSV) that retrieves tasks and calls the storage function
+
+- `cli.js`
+  - To add a new command that allows users to export tasks from the command line
+
+- `models.js`
+  - May be used to ensure correct mapping of task fields into CSV format
+
+---
+
+### Search Terms Used
+
+During my investigation, I used the following search terms:
+
+- save
+- load
+- task
+- file
+- storage
+- cli
+- model
+- export
+- csv
+
+---
+
+### Files Identified
+
+The following files were identified as relevant during the search:
+
+- `storage.js` → handles file operations (saving and loading data)
+- `app.js` → contains business logic for managing tasks
+- `cli.js` → handles user interaction through commands
+- `models.js` → defines the structure of task data
 
 ### Expected Flow:
 User Command → cli.js → storage.js (get tasks) → CSV conversion → file output
@@ -361,6 +407,7 @@ My current understanding:
 - I believe storage.js is the most relevant file for file-related operations
 
 Project structure:
+- app.js
 - cli.js
 - models.js
 - storage.js
@@ -623,3 +670,375 @@ If I were to implement this feature, I would follow these steps:
 ### 4.4 Summary Insight
 
 This feature follows the existing layered architecture of the system (CLI → Business Logic → Storage). By identifying existing patterns in the codebase, the new feature can be integrated without breaking the current structure, ensuring consistency and maintainability.
+
+## Exercise Part 3: Understanding Domain Model
+
+## 1. Extract Domain Model
+
+### Core Entity Classes
+
+The core entities identified in the task manager system are:
+
+- **Task**
+  - Represents a unit of work in the system
+  - Contains properties such as id, title, description, status, priority, due date, and created date
+
+- **TaskStatus**
+  - Represents the current state of a task
+  - Examples include: pending, in-progress, completed
+
+- **TaskPriority**
+  - Represents the importance level of a task
+  - Examples include: low, medium, high
+ 
+### Business Logic Related to Tasks
+
+The system includes several business rules and operations related to task management:
+
+- Creating tasks with unique identifiers
+- Updating task attributes such as:
+  - status
+  - priority
+  - due date
+- Deleting tasks from the system
+- Retrieving task details
+- Adding and removing tags from tasks
+- Filtering tasks based on:
+  - status
+  - priority
+  - overdue status
+- Generating statistics about tasks
+
+These operations are mainly handled in `app.js`, which acts as the business logic layer of the application.
+
+### Domain-Specific Terminology
+
+The following terms are specific to this application:
+
+- **Task** → a piece of work that needs to be completed
+- **Status** → the current progress state of a task
+- **Priority** → the level of importance assigned to a task
+- **Due Date** → the deadline for completing a task
+- **Overdue** → a task that has passed its due date without completion
+- **Tag** → a label used to categorize or organize tasks
+
+## 2. Form Initial Understanding
+
+### Entity Relationships
+
+The central entity in the system is the **Task**.
+
+A Task is associated with:
+- a **TaskStatus**, which represents its current progress
+- a **TaskPriority**, which represents its importance level
+
+Each task contains its own data such as title, description, due date, and tags.
+
+The relationships can be summarized as:
+
+Task → has a Status  
+Task → has a Priority  
+Task → may have Tags  
+Task → may have a Due Date  
+
+All operations performed on tasks (create, update, delete, retrieve) are managed through the application logic.
+
+### Explanation of Each Entity
+
+- **Task**
+  - This is the main object in the system.
+  - It represents a piece of work that the user wants to track and manage.
+
+- **TaskStatus**
+  - This defines the current state of a task (e.g. pending or completed).
+  - It helps track progress.
+
+- **TaskPriority**
+  - This defines how important a task is.
+  - It helps users decide which tasks to focus on first.
+ 
+### Questions and Areas of Confusion
+
+- How exactly are TaskStatus and TaskPriority implemented? (Are they enums, constants, or classes?)
+- How are tags stored within a task? (As an array or another structure?)
+- How does the system determine if a task is overdue?
+- Is there validation when updating task fields such as status or priority?
+- How do different modules (cli.js, app.js, storage.js) interact when performing task operations?
+
+## 3. Apply Domain Understanding Prompt
+
+### AI Prompt
+
+I'd like you to act as a senior developer who deeply understands our codebase's domain model. I'm a junior developer trying to make sense of the business logic and domain concepts in this application.
+
+Here's what I've found in the codebase:
+
+- The main entity is a Task, which includes properties such as id, title, description, status, priority, due date, and tags
+- There are related concepts such as TaskStatus and TaskPriority, which define the state and importance of a task
+- The application includes functionality for creating, updating, deleting, and retrieving tasks
+- Tasks can also be filtered by status, priority, or whether they are overdue
+- Business logic appears to be handled in app.js, while storage.js handles saving and loading data
+
+Based on this code, my current understanding is:
+- The system seems to be modeling a task management application that allows users to track and manage their tasks
+- I think Task, TaskStatus, and TaskPriority are related because each task has a status and a priority that define its state and importance
+- The due date field appears to represent the deadline for completing a task, and is used to determine if a task is overdue
+- I'm confused about how TaskStatus and TaskPriority are implemented (e.g. enums, constants, or classes)
+- I'm also unsure how tags are stored and managed within a task
+
+Could you, as a senior developer:
+1. Validate my current understanding, correcting any misconceptions
+2. Help me recognize the core domain concepts represented in this code
+3. Explain the relationships between these entities in business terms, not just technical relationships
+4. Clarify any domain-specific terminology or patterns I might be missing
+5. Help me connect these models to actual user-facing features or business processes
+
+Then, please ask me 3-5 questions that would test my understanding of this domain model. These should be questions that make me think about the business logic, not just the code syntax.
+
+Finally, suggest a simple diagram I could sketch to visualize these relationships that would help solidify my understanding.
+
+### AI Response
+I'll help you deeply understand this domain model. Let me first examine the codebase to give you accurate insights.Let me try a different approach to explore the repository structure:Now let me fetch the key files:Excellent! Now I can give you a comprehensive senior-level review. Let me break this down for you.
+
+## 1. Validating Your Current Understanding
+
+**You got most things right!** Here's what you nailed and what needs refinement:
+
+✅ **Correct:**
+- Task is indeed the central entity
+- TaskStatus and TaskPriority define task state and importance
+- Due dates determine overdue status
+- app.js handles business logic, storage.js handles persistence
+- Tasks have CRUD operations
+
+⚠️ **Needs Clarification:**
+- **TaskStatus and TaskPriority are NOT enums or classes** — they're plain JavaScript objects (constant dictionaries). TaskPriority uses **numeric values** (1, 2, 3, 4) while TaskStatus uses **string values** ('todo', 'in_progress', 'review', 'done'). This distinction matters for filtering and querying.
+- **Tags are stored as an array of strings**, not as separate objects. They're a flat collection directly on each Task.
+- The **workflow is more sophisticated than just CRUD** — there's a specific lifecycle with timestamps (createdAt, updatedAt, completedAt) that tracks task history.
+
+---
+
+## 2. Core Domain Concepts
+
+Here are the true domain concepts at play:
+
+| Concept | Business Meaning | Implementation |
+|---------|-----------------|-----------------|
+| **Task** | A unit of work to be completed | Class with lifecycle |
+| **Workflow State** | Where a task is in its journey (TODO → IN_PROGRESS → REVIEW → DONE) | TaskStatus enum with 4 states |
+| **Urgency** | How quickly this task needs attention (LOW → MEDIUM → HIGH → URGENT) | TaskPriority enum with 4 levels |
+| **Temporal Commitment** | When the task must be completed | dueDate field + isOverdue() logic |
+| **Work Categories** | Contextual labels to group/filter related work | Tags array (e.g., "backend", "bug-fix", "client-request") |
+| **Temporal Metadata** | Audit trail of when work happened | createdAt, updatedAt, completedAt timestamps |
+
+---
+
+## 3. Business Relationships Explained
+
+Think of this NOT as a technical data model, but as **a work management system**:
+
+**The Task Lifecycle:**
+```
+A user creates a Task (createdAt timestamp) 
+→ Task starts in TODO state
+→ User moves it to IN_PROGRESS (e.g., "I'm working on this now")
+→ User moves it to REVIEW (e.g., "This needs approval")
+→ User marks it DONE (special operation that triggers completedAt timestamp)
+→ Completed tasks can be reviewed for metrics/statistics
+```
+
+**Why the distinction between TaskStatus and TaskPriority matters:**
+- **Status** = "What stage is this work in?" (operational state)
+- **Priority** = "How critical is this?" (business urgency)
+- A task can be DONE (status) yet was HIGH priority (importance)
+- You could have a LOW priority task stuck in IN_PROGRESS for weeks
+- An URGENT task might move quickly through TODO → DONE
+
+**The Overdue Concept:**
+```
+A task is "overdue" only if:
+  1. It has a due date AND
+  2. The due date has passed AND
+  3. The task is NOT already done
+
+This is critical because a completed task, no matter how late, 
+shouldn't show as "overdue" anymore—it's resolved.
+```
+
+**Tags as Contextual Organization:**
+Rather than forcing tasks into rigid categories, tags allow flexible, multi-dimensional organization:
+- A task could be tagged: ["backend", "performance", "high-impact"]
+- Same task could be tagged: ["sprint-42", "technical-debt"]
+- Users can add/remove tags dynamically without restructuring the task
+
+---
+
+## 4. Domain-Specific Terminology You Should Know
+
+- **Workflow/Pipeline**: The journey from TODO → DONE
+- **Status Transition**: Moving a task from one state to another (e.g., marking IN_PROGRESS)
+- **Completion Capture**: When you mark a task DONE, the system records *when* it was completed (completedAt)
+- **Velocity Metrics**: The `stats` system tracks completed tasks in the last 7 days — this is used to measure team productivity
+- **Overdue Tracking**: Tasks past their due date that aren't done yet — an early warning system
+- **Categorical Filtering**: Slicing tasks by status, priority, or tags for different views
+
+---
+
+## 5. Business Processes This System Supports
+
+1. **Daily Standup**: "What am I doing today?" → Filter by status (show IN_PROGRESS + TODO)
+2. **Priority Triage**: "What fires do we need to put out?" → Filter by priority (show URGENT + HIGH) or show overdue
+3. **Capacity Planning**: "How much have we completed?" → View `stats.completedLastWeek`
+4. **Project Organization**: "Group work by theme" → Use tags (e.g., "feature-x", "bug-fix")
+5. **Deadline Management**: "What's at risk?" → Show overdue tasks
+6. **Progress Reporting**: "What's the status of everything?" → Count by status
+
+---
+
+## 6. Three Critical Questions to Test Your Understanding
+
+**Question 1: The Overdue Logic**
+> You have a task with priority URGENT and a due date of yesterday (April 11). The task is currently in REVIEW status. Your manager asks: "Is this task overdue?" What's the precise answer, and what does it tell you about the business rule?
+
+**Question 2: Tag Management vs. Status**
+> Why did the designers choose to use an array of tags instead of adding additional status values like `TaskStatus.BLOCKED` or `TaskStatus.WAITING_FOR_REVIEW`? What's the business advantage of this approach?
+
+**Question 3: The Completion Timestamp**
+> A task was created on April 1, moved to IN_PROGRESS on April 3, moved to REVIEW on April 5, and marked DONE on April 12. The due date was April 10. The updatedAt field gets reset each time it's modified. Why does the system separately track `completedAt` instead of just relying on `updatedAt`?
+
+**Bonus Question 4: Statistics and Retention**
+> The statistics function counts "Completed in last 7 days." What business value does this metric provide? When would a manager look at this number, and what decisions might they make based on it?
+
+**Bonus Question 5: Priority Numbering**
+> TaskPriority uses numeric values (1, 2, 3, 4) while TaskStatus uses strings ('todo', 'in_progress', etc.). Why do you think this design choice was made? What operation becomes easier with numbers that would be harder with strings?
+
+---
+
+## 7. Domain Model Visualization
+
+Here's a diagram you can sketch to cement your understanding:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      TASK ENTITY                         │
+│                                                          │
+│  id: UUID                                               │
+│  title: string ──────────────┐                          │
+│  description: string         │ Basic Info               │
+│  createdAt: timestamp ───────┘                          │
+│                                                          │
+│  ┌──────────────────────────────────┐                   │
+│  │    LIFECYCLE STATE               │                   │
+│  │  status: [TODO → PROGRESS →      │  Workflow         │
+│  │           REVIEW → DONE]          │  Pipeline         │
+│  │  updatedAt: timestamp             │                   │
+│  │  completedAt: timestamp (if DONE) │                   │
+│  └──────────────────────────────────┘                   │
+│                                                          │
+│  ┌──────────────────────────────────┐                   │
+│  │    IMPORTANCE LEVEL              │                   │
+│  │  priority: 1|2|3|4                │  Urgency         │
+│  │  [LOW|MEDIUM|HIGH|URGENT]         │                   │
+│  └──────────────────────────────────┘                   │
+│                                                          │
+│  ┌──────────────────────────────────┐                   │
+│  │  TEMPORAL CONSTRAINTS             │                   │
+│  │  dueDate: timestamp (optional)     │  Deadline        │
+│  │  isOverdue(): boolean logic        │  Management      │
+│  │  (dueDate < now && status ≠ DONE)  │                   │
+│  └──────────────────────────────────┘                   │
+│                                                          │
+│  tags: [string, string, ...]         Flexible Labels    │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+    WORKFLOW VISUALIZATION:
+    
+    [✓] Done           [>] In Progress        [?] Review
+         ↑                    ↑                   ↑
+         │                    │                   │
+    [ ] Todo ─────────────────┴───────────────────┘
+         
+    ORTHOGONAL DIMENSIONS:
+    
+    Priority independent of Status:
+    !!!! URGENT task stuck in TODO for weeks
+    !    LOW priority task quickly DONE
+    
+    Tags cross-cut all statuses:
+    Task1: [sprint-42, backend] → status: TODO, priority: HIGH
+    Task2: [sprint-42, backend] → status: DONE, priority: LOW
+    (Same tags, different states/priorities)
+```
+
+---
+
+## Summary Table: Your New Mental Model
+
+| Dimension | Values | Purpose | Use Case |
+|-----------|--------|---------|----------|
+| **Status** | TODO, IN_PROGRESS, REVIEW, DONE | Track work progression | "Where is this task in our process?" |
+| **Priority** | 1, 2, 3, 4 (numeric) | Signal urgency | "What should I work on first today?" |
+| **Due Date** | ISO date (optional) | Set deadline expectation | "Is this at risk?" |
+| **Tags** | Free-form strings (multiple) | Flexible categorization | "Show me all backend work" or "What's in sprint 42?" |
+| **Timestamps** | createdAt, updatedAt, completedAt | Audit trail & metrics | "How fast do we complete work?" |
+
+You're now equipped to understand not just *how* the code works, but *why* it's designed this way. The domain model here is elegantly simple yet powerful enough to support real work management processes. Well done getting to this point! 🎯
+
+## 4. Test Your Knowledge
+
+### Question 1: Overdue Logic
+
+Yes, the task is overdue.
+
+This is because:
+- The due date has passed (April 11)
+- The task is not marked as DONE (it is still in REVIEW)
+
+This shows that a task is only considered not overdue if it is completed, even if the due date has passed.
+
+---
+
+### Question 2: Tags vs Status
+
+Tags are used instead of adding more status values because they provide more flexibility.
+
+Status represents the stage of a task in the workflow (e.g. TODO, IN_PROGRESS, DONE), while tags allow tasks to be categorized in multiple ways without affecting the workflow.
+
+Using tags allows a task to belong to multiple categories at once, such as "backend", "urgent", or "client-request", without complicating the status system.
+
+---
+
+### Question 3: completedAt vs updatedAt
+
+The system uses `completedAt` instead of relying only on `updatedAt` because they serve different purposes.
+
+- `updatedAt` changes every time a task is modified
+- `completedAt` specifically records when a task was finished
+
+This is important for tracking performance and measuring how long tasks take to complete.
+
+---
+
+### Question 4: Statistics and Retention
+
+The "completed in last 7 days" metric helps measure productivity.
+
+A manager might use this to:
+- Track team performance
+- Understand how much work is being completed over time
+- Identify if productivity is increasing or decreasing
+
+This helps in decision-making such as workload planning and performance evaluation.
+
+---
+
+### Question 5: Priority Numbering
+
+Priority uses numbers instead of strings because numbers make comparison and sorting easier.
+
+For example:
+- It is easier to sort tasks by priority using numbers (1–4)
+- The system can quickly determine which tasks are more urgent
+
+This would be more difficult if priority was stored as text values.
