@@ -1112,3 +1112,152 @@ Task
 
 - **Filtering**  
   The process of retrieving tasks based on conditions such as status, priority, or overdue state.
+
+  # Exercise Part 4: Practical Application
+
+## Scenario
+
+The team needs to implement a new business rule:
+
+> Tasks that are overdue for more than 7 days should be automatically marked as **abandoned**, unless they are marked as high priority.
+
+---
+
+## 1. Planning
+
+### Files to Modify
+
+Based on the project structure, the following files would need to be modified:
+
+- **app.js**
+  - Contains business logic
+  - The new rule will be implemented here
+
+- **models.js**
+  - Add a new task status: `abandoned`
+
+- **storage.js**
+  - No major changes required
+  - Will persist updated task data
+
+- **cli.js** *(optional)*
+  - May be updated to display or filter abandoned tasks
+
+---
+
+### Implementation Plan
+
+To implement the new business rule:
+
+1. **Update Task Status**
+   - Add `abandoned` to TaskStatus in `models.js`
+
+2. **Implement Business Logic**
+   - In `app.js`, create a function that:
+     - Retrieves all tasks
+     - Checks if a task:
+       - Has a due date
+       - Is not marked as done
+       - Is overdue by more than 7 days
+       - Is not high priority
+     - Updates the task status to `abandoned`
+
+3. **Trigger the Rule**
+   - Apply the rule when:
+     - Listing tasks
+     - Generating statistics
+     - Or during application startup
+
+4. **Persist Changes**
+   - Save updated tasks using `storage.js`
+
+---
+
+### Questions for the Team
+
+Before implementation, the following should be clarified:
+
+- Does "high priority" include both HIGH and URGENT?
+- Should abandoned tasks be reversible?
+- When should this rule be triggered?
+- Should abandoned tasks be visible in task listings?
+- Should users be notified when tasks become abandoned?
+
+---
+
+## 2. Reflection
+
+### How AI Prompts Helped
+
+AI prompts helped in understanding the structure and flow of the application.
+
+They made it easier to:
+- Identify the separation of concerns (CLI, business logic, storage)
+- Understand where new features should be implemented
+- Recognize patterns in the codebase
+- Trace how data flows through the system
+
+---
+
+### Remaining Uncertainties
+
+Some areas that are still unclear:
+
+- How frequently business rules should run in production systems
+- Whether scheduling mechanisms exist in the application
+- How error handling is consistently implemented
+- Performance considerations with large datasets
+
+---
+
+### Next Steps
+
+To improve understanding:
+
+- Trace a full feature from CLI to storage
+- Review how testing is implemented using Jest
+- Practice implementing additional features
+- Study error handling patterns in the codebase
+
+---
+
+## 3. Final Discussion and Reflection
+
+### Group Discussion
+
+My approach was to first identify key components and their responsibilities.
+
+A challenge I encountered was understanding how modules interact.  
+This was resolved by tracing function calls across:
+- `cli.js`
+- `app.js`
+- `storage.js`
+
+Using structured AI prompts helped guide the process and reduce confusion.
+
+---
+
+### Personal Reflection
+
+#### Most Helpful Prompt
+
+The most helpful prompt was the one focused on locating feature implementation, as it clarified where different logic belongs.
+
+---
+
+#### What I Would Do Differently
+
+Next time, I would:
+- Start by tracing one complete feature
+- Focus on data flow earlier in the process
+
+---
+
+#### Additional Tools and Resources
+
+To complement AI prompting:
+
+- VS Code (search and navigation)
+- Debugging tools
+- Architecture diagrams
+- Jest (testing framework)
