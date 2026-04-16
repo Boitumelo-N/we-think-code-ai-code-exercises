@@ -3,7 +3,7 @@
 ## 🎯 Objective
 Understand how **task creation** and **task status updates** work in the Task Manager application using AI-assisted code exploration.
 
----
+
 
 ## 1. Identifying Relevant Files
 
